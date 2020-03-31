@@ -50,12 +50,6 @@ ln -s /scratch/summit/rgcheek@colostate.edu/chr-32-bioinformatics/chr-32-bioinfo
 # Here is what I did (making a symbolic link)
 ln -s  /scratch/summit/rgcheek@colostate.edu/fastqs-chr32-160-chinook-8-lanes fastqs
 
-# You will have to modify this to reflect the proper location of the
-# directory on your system.
-
-
-
-
 # With all of this in place.  You are ready to get an interactive
 # shell on a compute node and make sure that you can make the command
 # lines in map-N-files-from-K.sh work.  
