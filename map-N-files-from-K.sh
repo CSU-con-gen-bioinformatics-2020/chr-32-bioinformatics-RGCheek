@@ -47,14 +47,16 @@ STOP=$(($START + $1 - 1))
 # each sample in order to mark duplicates in it, etc.
 SM_TAGS=$(awk -v low=$START -v high=$STOP '$1 >= low && $1 <= high {print $5}' chinook-fastq-meta-data.tsv | uniq)
 
+
+echo $SM_TAGS
 # loop over those file indexes and do the alignment steps on all of them.
 # NOTE: If you want to test the lines inside the loop just set Idx=5 (for example)
 # on the command line and then run through the lines within the for loop.
 for((Idx=$START; Idx<=$STOP; Idx++)); do
 
-  echo "Starting work on file index $Idx at $(date)"
+echo "Starting work on file index $Idx at $(date)"
   
-  
+
   # This awk script extracts the appropriate line from the chinook-fastq-meta-data.tsv
   # file and makes a command line that sets shell variables named after the column
   # headers in the file to their appropriate values:
@@ -72,8 +74,8 @@ for((Idx=$START; Idx<=$STOP; Idx++)); do
   mkdir -p stderr
   
   # Define variables for file names
-  READ2=fastqs/${file_prefix}2.fq.gz
-  READ1=fastqs/${file_prefix}1.fq.gz
+  READ2=/scratch/summit/rgcheek@colostate.edu/scratch/fastqs-chr32-160-chinook-8-lanes/${file_prefix}2.fq.gz # the shortcut failed so using complete directory path instead 
+  READ1=/scratch/summit/rgcheek@colostate.edu/scratch/fastqs-chr32-160-chinook-8-lanes/${file_prefix}1.fq.gz
   GENOME=genome/GCA_002872995.1_Otsh_v1.0_genomic.fna.gz
   FIXEDMATES=bam/${file_prefix}_FIXED.bam
   SORTED=bam/${file_prefix}_SORTED.bam
@@ -89,12 +91,13 @@ for((Idx=$START; Idx<=$STOP; Idx++)); do
   
   # now, map, convert to bam, fix mates, sort in coordinate order, and
   # finally remove the intermediate fixed-mate file
-  bwa mem -R $RGString $GENOME $READ1 $READ2 2> $BWA_STDERR |
-    samtools view -b -1 - 2> $SAM_VIEW_STDERR |
-    samtools fixmate -m -O BAM - $FIXEDMATES 2> $SAM_FIX_STDERR &&
-  samtools sort $FIXEDMATES 2> $SAM_SORT_STDERR > $SORTED &&
-  rm -f $FIXEDMATES &&
+  bwa mem -R $RGString $GENOME $READ1 $READ2 2> $BWA_STDERR |      #align the reads to the genome using bwa-mem
+    samtools view -b -1 - 2> $SAM_VIEW_STDERR |                  #output to standard error
+    samtools fixmate -m -O BAM - $FIXEDMATES 2> $SAM_FIX_STDERR &&     #Make sure the read pairs are together
+  samtools sort $FIXEDMATES 2> $SAM_SORT_STDERR > $SORTED &&         #sort the read pairs and them move to the sorted directory
+  rm -f $FIXEDMATES &&    #remove the unsorted read pair file
   echo "Done mapping file index $Idx at $(date)" # this only gets printed if it was successful
+ 
   
 done
 
